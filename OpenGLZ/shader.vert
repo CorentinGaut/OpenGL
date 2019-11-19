@@ -14,7 +14,7 @@ uniform mat4 view;
 
 void main()
 {
-    gl_Position = /*projection * view * Mat **/ vec4(position, 1.0);
+    gl_Position = projection * view * Mat * vec4(position, 1.0);
 	uv = uv_in;
 	color_out =  normal;
 }

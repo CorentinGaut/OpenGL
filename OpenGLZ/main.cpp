@@ -16,6 +16,7 @@
 #include <tinyply.h>
 #include "stl.h"
 #include "texture.h"
+#include "OBJLoader.h"
 
 float distancez = 10.0f;
 
@@ -199,34 +200,24 @@ int main(void)
 	//affichage du logo STL
 	vector<Triangle> logo = ReadStl("house_targaryen.stl");
 
-	//Load l'image
+	//Load l'image---------------------
 	Image texture = LoadImage("wood.bmp");
 
-	vector<Vertex> textures{
+	//load obj--------------------------
+	std::vector<glm::vec3> verticesOBJ;
+	std::vector<glm::vec2> uvsOBJ;
+	std::vector<glm::vec3> normalsOBJ;
+	const char* filename = "cube.obj";
+	loadOBJ(filename, verticesOBJ, uvsOBJ, normalsOBJ);
 
-		//face 1
-		{ glm::vec3(0,0,1),glm::vec2(0,0) },
-		{ glm::vec3(0.5,0,1),glm::vec2(1,0) },
-		{ glm::vec3(0,0.5,1),glm::vec2(0,1) },
+	std::vector<Vertex> cubeVert;
 
-		{ glm::vec3(0.5,0,1),glm::vec2(1,0) },
-		{ glm::vec3(0.5,0.5,1),glm::vec2(1,1) },
-		{ glm::vec3(0,0.5,1),glm::vec2(0,1) },
-
-		//face 2
-		{ glm::vec3(0.5,0,0.5),glm::vec2(0,0) },
-		{ glm::vec3(0.5,0,0),glm::vec2(1,0) },
-		{ glm::vec3(0.5,0.5,0.5),glm::vec2(0,1) },
-
-		{ glm::vec3(0.5,0,0),glm::vec2(1,0) },
-		{ glm::vec3(0.5,0.5,0),glm::vec2(1,1) },
-		{ glm::vec3(0.5,0.5,0.5),glm::vec2(0,1) }
-	};
-
-	vector<Triangle> SpongeBobHouse = ReadStl("Spongebobs_House.stl");
-	vector<Triangle> objs = logo;
-	for (int i = 0; i < SpongeBobHouse.size(); i++) {
-		objs.push_back(SpongeBobHouse[i]);
+	for (unsigned int i = 0; i < verticesOBJ.size(); i++)
+	{
+		cubeVert.push_back({
+			verticesOBJ[i],
+			uvsOBJ[i]
+			});
 	}
 	
 	// Buffers
@@ -236,7 +227,7 @@ int main(void)
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, textures.size() * sizeof(Vertex) * 6, textures.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, cubeVert.size() * sizeof(Vertex), cubeVert.data(), GL_STATIC_DRAW);
 
 	//position
 	const auto index = glGetAttribLocation(program, "position");
@@ -245,10 +236,10 @@ int main(void)
 	glEnableVertexAttribArray(index);
 
 	//normal
-	const auto indexNormal = glGetAttribLocation(program, "normal");
+	/*const auto indexNormal = glGetAttribLocation(program, "normal");
 
-	glVertexAttribPointer(indexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)(sizeof(glm::vec3)));
-	glEnableVertexAttribArray(indexNormal);
+	glVertexAttribPointer(indexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)(sizeof(glm::vec3) + sizeof(glm::vec2)));
+	glEnableVertexAttribArray(indexNormal);*/
 
 	//Texture
 	GLuint textureId = 1;
@@ -267,10 +258,10 @@ int main(void)
 	glProgramUniform1i(program, uniformTexture, 0);
 
 	//FRAME BUFFER
-	GLuint frameBufferId = 1;
+	/*GLuint frameBufferId = 1;
 	glCreateFramebuffers(1, &frameBufferId);
 	//glNamedFramebufferTexture()
-	//glBindframebuffer
+	//glBindframebuffer*/
 
 
 	float scale = 0.01f;
@@ -285,7 +276,6 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 
-
 		glfwSetScrollCallback(window, scroll_callback);
 
 		int width, height;
@@ -293,12 +283,12 @@ int main(void)
 		glfwGetFramebufferSize(window, &width, &height);
 
 		glViewport(0, 0, width, height);
-
+	
 		glClear(GL_COLOR_BUFFER_BIT);
 		//HOUSE TARGARYAN
 		
 			//couleur
-			glm::vec3 green = glm::vec3(0.f, 1.f, 1.f);
+			/*glm::vec3 green = glm::vec3(0.f, 1.f, 1.f);
 			int uniformCouleur = glGetUniformLocation(program, "color");
 			glProgramUniform3f(program, uniformCouleur, green.x, green.y, green.z);
 		
@@ -320,13 +310,13 @@ int main(void)
 			int uniformView = glGetUniformLocation(program, "view");
 			glProgramUniformMatrix4fv(program, uniformView, 1, GL_FALSE, &view[0][0]);
 
-			//glClear(GL_DEPTH_BUFFER_BIT);
+			//glClear(GL_DEPTH_BUFFER_BIT);*/
 
-			glDrawArrays(GL_TRIANGLES, 0, logo.size() * 3);
+			glDrawArrays(GL_TRIANGLES, 0, verticesOBJ.size() * 3);
 
-
-		//DEUXIEME OBJET
 		
+		//DEUXIEME OBJET
+		/*
 			//couleur
 			glm::vec3 blue = glm::vec3(0.f, 0.f, 1.f);
 			//uniformCouleur = glGetUniformLocation(program, "color");
@@ -345,8 +335,9 @@ int main(void)
 			//-----------------------------VIEW-----------------------------
 			//uniformView = glGetUniformLocation(program, "view");
 			glProgramUniformMatrix4fv(program, uniformView, 1, GL_FALSE, &view[0][0]);
+			*/
 
-			glDrawArrays(GL_TRIANGLES, logo.size() * 3, objs.size() * 3 - (logo.size() * 3));
+			//glDrawArrays(GL_TRIANGLES, 0, verticesOBJ.size());
 			
 			
 		glfwSwapBuffers(window);
